@@ -64,3 +64,6 @@ footer {visibility: hidden;}
 </style>
 """
 st.markdown(hide_st_style, unsafe_allow_html=True)
+
+from .pension_calculator.src import calculate_net_income
+
