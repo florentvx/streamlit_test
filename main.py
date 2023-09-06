@@ -23,7 +23,7 @@ my_var = st.sidebar.multiselect(
     default=[option_ms[0], option_ms[-1]]
 )
 
-st.title(':bar_chart: Numbers')
+st.title(':pencil2: Numbers')
 st.markdown("---")
 
 
