@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from PIL import Image
+import yaml
 
 import pension_calculator.src as pension
 
@@ -44,8 +45,7 @@ with right_col:
 st.markdown("---")
 
 st.title(':pencil2:  Numbers')
-st.markdown("---")
-
+#st.markdown("##")
 st.text(sum(map(float,my_var)))
 
 left_col, midd_col, right_col = st.columns([0.25,0.5,0.25])
@@ -71,6 +71,35 @@ my_line_chart = px.line(
 )
 
 midd_col.plotly_chart(my_line_chart, use_container_width=True)
+
+st.markdown('---')
+
+uploaded_file = st.file_uploader('Choose yaml file:', type='yaml')
+if uploaded_file is not None:
+    st.markdown("---")
+    my_file = yaml.safe_load(uploaded_file)
+    #random use case
+    hist_infl = my_file['historical_inflation']
+    df = pd.DataFrame()
+    df["year"] = hist_infl.keys()
+    df['rate'] = df['year'].apply(lambda x: hist_infl[x])
+    #st.dataframe(df)
+    fig_inf = px.bar(
+        df,
+        x="year",
+        y='rate',
+        color='rate',
+        color_continuous_scale=['green', 'yellow', 'red'],
+        template='plotly_white',
+        title=f'<b>Inflation Rate</b>'
+    )
+    st.plotly_chart(fig_inf)
+
+    popo = yaml.dump(my_file)
+    st.download_button(label="redownload yaml", file_name='new_yaml.yaml', mime = 'application/x-yaml', data=popo)
+    
+    
+
 
 
 # hide streamlit style
