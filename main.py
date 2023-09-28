@@ -6,7 +6,7 @@ import streamlit as st
 from PIL import Image
 import yaml
 
-import pension_calculator.src as pension
+import pension_simulator as pension
 
 st.set_page_config(
     page_title='My Data',
