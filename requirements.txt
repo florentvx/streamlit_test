@@ -1,2 +1,3 @@
 plotly
 pyyaml
+git+https://github.com/florentvx/pension_calculator.git@master
