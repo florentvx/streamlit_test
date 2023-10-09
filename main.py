@@ -28,17 +28,43 @@ my_var = st.sidebar.multiselect(
 
 st.title("💷 Tax Calculations")
 
-my_amount = 100000
+left_col, _ = st.columns([0.3,0.7])
+with left_col:
+    #my_amount = st.slider("Gross Pay:", min_value=0.0,max_value=300000.0, value = 50000.0)
+    my_amount = st.number_input(
+        "Gross Pay:", 
+        min_value=1000, 
+        max_value=1000000, 
+        value=40000, 
+        step=100,
+        format='%i'
+    )
 
 left_col, midd_col, right_col = st.columns([0.35,0.35,0.3])
+income_tax = pension.calculate_income_tax(my_amount)
+ni_tax = pension.calculate_national_insurance_tax(my_amount)
+summary_tax = pension.calculate_all_taxes(my_amount)
 with left_col:
-    st.dataframe(pension.calculate_income_tax(my_amount))
+    st.dataframe(income_tax)
 with midd_col:
-    st.dataframe(pension.calculate_national_insurance_tax(my_amount))
+    st.dataframe(ni_tax)
 with right_col:
-    st.dataframe(pension.calculate_all_taxes(my_amount))
+    st.dataframe(summary_tax)
+pie_array = [
+    ["Income Tax", income_tax.loc["Total Income Tax", 'Tax Amount']],
+    ["NI Tax", ni_tax.loc["Total NI Tax", 'Tax Amount']],
+]
+pie_array += [["Net Revenue", my_amount - pie_array[0][1] - pie_array[1][1]]]
+pie_df = pd.DataFrame(pie_array, columns=["Name", "Value"])
+pie_chart = px.pie(pie_df, values="Value", names="Name")
 
+_,mid2,_ = st.columns([0.3, 0.4, 0.3])
 
+with mid2:
+    st.plotly_chart(pie_chart)
+
+    image = Image.open('images/tax.jpg')
+    st.image(image, caption="my picture", use_column_width=True)
 
 
 
