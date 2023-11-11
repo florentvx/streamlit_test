@@ -5,9 +5,9 @@ import pension_simulator as pension
 import plotly.express as px
 from PIL import Image
 
-st.set_page_config(
-    layout="wide",
-)
+from tools import set_page_config
+
+set_page_config()
 
 st.title("💷 Tax Calculations")
 

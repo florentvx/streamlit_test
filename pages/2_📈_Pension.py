@@ -3,11 +3,11 @@ import streamlit as st
 import datetime as dt
 from pension_simulator import model_statics, simulate_pension_fund, simulate_pension_struct, calculate_fix_pension_from_fund, calculate_all_taxes
 
-st.set_page_config(
-    layout="wide",
-)
+from tools import set_page_config
 
-st.title("💷 Pension Calculations")
+set_page_config()
+
+st.title(":blue_book: Pension Calculations")
 
 left_form, _,right_form = st.columns([0.45, 0.1, 0.45])
 

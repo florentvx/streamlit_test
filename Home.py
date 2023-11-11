@@ -6,14 +6,10 @@ import streamlit as st
 from PIL import Image
 import yaml
 
+from tools import set_page_config
 
 
-st.set_page_config(
-    page_title='My Data',
-    page_icon="🔵",
-    layout="wide",
-)
-
+set_page_config()
 st.header("my 2023 data")
 st.subheader("do i need a subheader? Really")
 
