@@ -75,7 +75,7 @@ if st.session_state['name'] != NO_NAME_SESSION:
     )
     st.button("Log Out", on_click=log_out)
     if uploader_shown:
-        st.experimental_rerun()
+        st.rerun()
 
 st.markdown('---')
 
