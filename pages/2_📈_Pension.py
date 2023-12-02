@@ -12,12 +12,10 @@ st.title(":blue_book: Pension Calculations")
 left_form, _,right_form = st.columns([0.45, 0.1, 0.45])
 
 with left_form:
-    st.subheader("My current numbers")
-    left_left_form, right_left_form = left_form.columns([0.5,0.5])
-    with left_left_form:
-        start_date=st.date_input("Start Date", value=dt.date(2017,8,1), help="Your carreer start date")
+    st.subheader("My Current Numbers")
+    _, mid_cur_nb, _  = st.columns([0.25, 0.5, 0.25])
+    with mid_cur_nb:
         crt_amount=st.number_input("Total Amount", value=100000.00)
-    with right_left_form:
         today_date = st.date_input("Today date", value=dt.date.today())
         crt_contrib=st.number_input("Current Monthly Contribution", value=1000.00)
     
@@ -25,11 +23,13 @@ with right_form:
     st.subheader("My Model parameters", help="These parameters should be set from the start to reasonable values and hardly ever retouched in the future")
     left_right_form, right_right_form = right_form.columns([0.5,0.5])
     with left_right_form:
+        start_date=st.date_input("Start Date", value=dt.date(2017,8,1), help="Your carreer start date")
         fwd_inflation = st.number_input("Inflation Prevision (Yearly %)", value=2.00) / 100.0
-        ctb_inc=st.number_input("my Contribution Increases (Yearly %)", value=5.00) / 100.0
-    with right_right_form:
-        fwd_market_rate = st.number_input("ROI Prevision (Yearly %)", value=3.00, help="Return Over Investement") / 100.0
         nb_wk_yrs=st.number_input("Number Of Working Years", value=40)
+        
+    with right_right_form:
+        ctb_inc=st.number_input("my Contribution Increases (Yearly %)", value=5.00) / 100.0
+        fwd_market_rate = st.number_input("ROI Prevision (Yearly %)", value=3.00, help="Return Over Investement") / 100.0
         nb_ret_yrs=st.number_input("Number Of Retirement Years", value=35)
     ctb_inc_mth=st.multiselect(
         'Contribution Increase Month',
