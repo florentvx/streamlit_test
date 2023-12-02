@@ -6,12 +6,12 @@ import streamlit as st
 from PIL import Image
 import yaml
 
-from tools import set_page_config
+from tools import set_page_config, NO_NAME_SESSION
 
 
 set_page_config()
 
-NO_NAME_SESSION = "<INPUT YOUR SESSION NAME HERE>"
+
 session_name = st.session_state.get('name', None)
 if session_name is None:
     st.session_state['name'] = NO_NAME_SESSION
