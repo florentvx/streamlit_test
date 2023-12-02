@@ -66,8 +66,13 @@ def log_out():
     st.session_state['name'] = NO_NAME_SESSION
 
 if st.session_state['name'] != NO_NAME_SESSION:
-    popo = yaml.dump(st.session_state)
-    st.download_button(label="Download Session", file_name=f'pension_simulator_{st.session_state["name"]}.yaml', mime = 'application/x-yaml', data=popo)
+    my_yaml_data_to_download = yaml.dump(st.session_state)
+    st.download_button(
+        label="Download Session", 
+        file_name=f'pension_simulator_{"".join(e for e in st.session_state["name"] if e.isalnum())}.yaml',
+        mime = 'application/x-yaml',
+        data=my_yaml_data_to_download
+    )
     st.button("Log Out", on_click=log_out)
     if uploader_shown:
         st.experimental_rerun()
