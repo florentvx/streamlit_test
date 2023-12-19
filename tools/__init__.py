@@ -1,4 +1,5 @@
 import streamlit as st
+from .callback import init_queue
 
 NO_NAME_SESSION = "<INPUT YOUR SESSION NAME HERE>"
 

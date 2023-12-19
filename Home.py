@@ -1,12 +1,13 @@
+import logging
 import math
-
+import asyncio
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 from PIL import Image
 import yaml
 
-from tools import set_page_config, NO_NAME_SESSION
+from tools import set_page_config, NO_NAME_SESSION, init_queue
 
 
 set_page_config()
@@ -21,9 +22,14 @@ st.header("My Pension Calcultor & Simulator")
 if st.session_state['name'] == NO_NAME_SESSION:
     st.subheader("To Start a session: \n - either name the session below \n - or drop your session's YAML below.")
 
+put_in_queue, my_callback_loop = init_queue("HOME")
 
-new_name = st.text_input(label="Session Name: ", value=st.session_state['name'])
-st.session_state['name'] = new_name
+@put_in_queue
+async def change_name():
+    st.session_state['name'] = st.session_state.new_name
+
+new_name = st.text_input(label="Session Name: ", value=st.session_state['name'], on_change=change_name, key='new_name')
+
 
 
 st.sidebar.header("sidebar")
@@ -105,7 +111,6 @@ with right_col:
 
 st.markdown("---")
 
-
 df = pd.DataFrame()
 df['x'] = [i/100. for i in range(1000)]
 df['y'] = df['x'].apply(lambda x: math.sin(x))
@@ -119,7 +124,6 @@ my_line_chart = px.line(
 
 midd_col.plotly_chart(my_line_chart, use_container_width=True)
 
-
 # hide streamlit style
 hide_st_style = """
 <style>
@@ -129,3 +133,20 @@ footer {visibility: hidden;}
 </style>
 """
 st.markdown(hide_st_style, unsafe_allow_html=True)
+
+
+
+
+try:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    do_rerun = asyncio.run(my_callback_loop())
+except Exception as e:
+    logging.error(e)
+    do_rerun = False
+finally:
+    print(f"Closing loop - dorerun {do_rerun}")
+    loop.close()
+    if do_rerun:
+        st.rerun()
+
