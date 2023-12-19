@@ -7,26 +7,66 @@ from PIL import Image
 
 from tools import set_page_config
 
+if "gross_pay" not in st.session_state:
+    st.session_state['gross_pay'] = 40000
+
+if "tax_events" not in st.session_state.keys():
+    st.session_state['tax_events'] = {}
+if 'input' not in st.session_state["tax_events"].keys(): 
+    st.session_state['tax_events']['input'] = st.session_state['gross_pay']
+
+
+def on_change_my_amount():
+    st.session_state['tax_events']['input'] = st.session_state.gross_pay_input
+
+def push_gross_pay():
+    st.session_state['gross_pay'] = st.session_state['tax_events']['input']
+
+def restore_gross_pay():
+    st.session_state['tax_events']['input'] = st.session_state['gross_pay']
+
+
 set_page_config()
 
 st.title("💷 Tax Calculations")
 
-if "gross_pay" not in st.session_state:
-    st.session_state['gross_pay'] = 0.0
 
-left_col_input, _ = st.columns([0.3,0.7])
+left_col_input, _ = st.columns([0.35,0.65])
 with left_col_input:
-    #my_amount = st.slider("Gross Pay:", min_value=0.0,max_value=300000.0, value = 50000.0)
     my_amount = st.number_input(
         "Gross Pay:", 
         min_value=1000, 
         max_value=1000000, 
-        value=40000 if st.session_state['gross_pay'] == 0.0 else st.session_state['gross_pay'], 
+        value=st.session_state['tax_events']['input'], 
         step=1000,
-        format='%i'
+        format='%i',
+        on_change=on_change_my_amount,
+        key='gross_pay_input'
     )
+    zone_button_left, zone_button_mid, zone_button_right = left_col_input.columns([0.25,0.25,0.5])
+    with zone_button_left:
+        push_button = st.button(
+            "Push", 
+            key="push_button", 
+            on_click=push_gross_pay,
+            disabled=st.session_state['tax_events']['input'] == st.session_state['gross_pay'],
+            use_container_width=True,
+        )
+    with zone_button_mid:
+        restore_button = st.button(
+            "Restore", 
+            key="restore_button", 
+            on_click=restore_gross_pay,
+            disabled=st.session_state['tax_events']['input'] == st.session_state['gross_pay'],
+            use_container_width=True,
+        )
+    with zone_button_right:
+        if push_button:
+            st.write(f'Gross Pay pushed: {st.session_state["gross_pay"]}')
+        if restore_button:
+            st.write(f'Gross Pay restored: {st.session_state["gross_pay"]}')
 
-st.session_state['gross_pay'] = my_amount
+st.markdown('')
 
 left_col, midd_col, right_col = st.columns([0.35,0.35,0.3])
 income_tax = pension.calculate_income_tax(my_amount)
