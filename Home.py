@@ -7,30 +7,32 @@ import streamlit as st
 from PIL import Image
 import yaml
 
-from tools import set_page_config, NO_NAME_SESSION, init_queue
+from tools import set_page_config, init_queue
+from tools.session import *
 
-
-set_page_config()
-
-
-session_name = st.session_state.get('name', None)
-if session_name is None:
-    st.session_state['name'] = NO_NAME_SESSION
-
-st.header("My Pension Calcultor & Simulator")
-
-if st.session_state['name'] == NO_NAME_SESSION:
-    st.subheader("To Start a session: \n - either name the session below \n - or drop your session's YAML below.")
 
 put_in_queue, my_callback_loop = init_queue("HOME")
 
+set_page_config()
+
+if st.session_state.get('my_session', None) is None:
+    reset_session()
+
+st.header("My Pension Calcultor & Simulator")
+
+if not is_session_loaded():
+    st.subheader("To Start a session: \n - either name the session below \n - or drop your session's YAML below.")
+
 @put_in_queue
 async def change_name():
-    st.session_state['name'] = st.session_state.new_name
+    session_set('name', st.session_state.new_name)
 
-new_name = st.text_input(label="Session Name: ", value=st.session_state['name'], on_change=change_name, key='new_name')
-
-
+new_name = st.text_input(
+    label="Session Name: ", 
+    value=session_get('name'), 
+    on_change=change_name, 
+    key='new_name',
+)
 
 st.sidebar.header("sidebar")
 option_ms = [f"{i}" for i in range(1,6)]
@@ -42,56 +44,35 @@ my_var = st.sidebar.multiselect(
 
 uploaded_file = None
 uploader_shown = False
-if st.session_state['name'] == NO_NAME_SESSION:
+if not is_session_loaded():
     uploaded_file = st.file_uploader('Choose yaml file:', type='yaml')
     uploader_shown = True
     
 if uploaded_file is not None:
     st.markdown("---")
-    st.session_state = yaml.safe_load(uploaded_file)
-    # #random use case
-    # hist_infl = my_file['historical_inflation']
-    # df = pd.DataFrame()
-    # df["year"] = hist_infl.keys()
-    # df['rate'] = df['year'].apply(lambda x: hist_infl[x])
-    # #st.dataframe(df)
-    # fig_inf = px.bar(
-    #     df,
-    #     x="year",
-    #     y='rate',
-    #     color='rate',
-    #     color_continuous_scale=['green', 'yellow', 'red'],
-    #     template='plotly_white',
-    #     title=f'<b>Inflation Rate</b>'
-    # )
-    # st.plotly_chart(fig_inf)
+    full_session_set(yaml.safe_load(uploaded_file))
 
-
-def log_out():
-    st.session_state.clear()
-    st.session_state['name'] = NO_NAME_SESSION
-
-if st.session_state['name'] != NO_NAME_SESSION:
+if is_session_loaded():
     my_yaml_data_to_download = yaml.dump(st.session_state)
     st.download_button(
         label="Download Session", 
-        file_name=f'pension_simulator_{"".join(e for e in st.session_state["name"] if e.isalnum())}.yaml',
+        file_name=f'pension_simulator_{"".join(e for e in session_get("name") if e.isalnum())}.yaml',
         mime = 'application/x-yaml',
         data=my_yaml_data_to_download
     )
-    st.button("Log Out", on_click=log_out)
+    st.button("Log Out", on_click=reset_session)
     if uploader_shown:
         st.rerun()
 
 st.markdown('---')
 
-if st.session_state['name'] != NO_NAME_SESSION:
+if is_session_loaded():
     st.title(":pencil2: My yaml data")
 
     st.text(
         '\n'.join([
             f'{k}: {v}'
-            for (k,v) in st.session_state.items()
+            for (k,v) in get_session().items()
         ])
     )
 

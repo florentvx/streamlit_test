@@ -6,24 +6,24 @@ import plotly.express as px
 from PIL import Image
 
 from tools import set_page_config
+from tools.session import *
 
-if "gross_pay" not in st.session_state:
-    st.session_state['gross_pay'] = 40000
+TAX_SESSION = "tax_events"
 
-if "tax_events" not in st.session_state.keys():
-    st.session_state['tax_events'] = {}
-if 'input' not in st.session_state["tax_events"].keys(): 
-    st.session_state['tax_events']['input'] = st.session_state['gross_pay']
+session_init('gross_pay',40000)
+
+if TAX_SESSION not in st.session_state.keys():
+    st.session_state[TAX_SESSION] = {'input': session_get('gross_pay')}
 
 
 def on_change_my_amount():
-    st.session_state['tax_events']['input'] = st.session_state.gross_pay_input
+    session_set('input', st.session_state.gross_pay_input, TAX_SESSION)
 
 def push_gross_pay():
-    st.session_state['gross_pay'] = st.session_state['tax_events']['input']
+    session_set('gross_pay', session_get('input', TAX_SESSION))
 
 def restore_gross_pay():
-    st.session_state['tax_events']['input'] = st.session_state['gross_pay']
+    session_set('input', session_get('gross_pay'), TAX_SESSION)
 
 
 set_page_config()
@@ -37,7 +37,7 @@ with left_col_input:
         "Gross Pay:", 
         min_value=1000, 
         max_value=1000000, 
-        value=st.session_state['tax_events']['input'], 
+        value=session_get('input', TAX_SESSION), 
         step=1000,
         format='%i',
         on_change=on_change_my_amount,
@@ -49,7 +49,7 @@ with left_col_input:
             "Push", 
             key="push_button", 
             on_click=push_gross_pay,
-            disabled=st.session_state['tax_events']['input'] == st.session_state['gross_pay'],
+            disabled=session_get('input', TAX_SESSION) == session_get('gross_pay'),
             use_container_width=True,
         )
     with zone_button_mid:
@@ -57,14 +57,14 @@ with left_col_input:
             "Restore", 
             key="restore_button", 
             on_click=restore_gross_pay,
-            disabled=st.session_state['tax_events']['input'] == st.session_state['gross_pay'],
+            disabled=session_get('input', TAX_SESSION) == session_get('gross_pay'),
             use_container_width=True,
         )
     with zone_button_right:
         if push_button:
-            st.write(f'Gross Pay pushed: {st.session_state["gross_pay"]}')
+            st.write(f'Gross Pay pushed: {session_get("gross_pay")}')
         if restore_button:
-            st.write(f'Gross Pay restored: {st.session_state["gross_pay"]}')
+            st.write(f'Gross Pay restored: {session_get("gross_pay")}')
 
 st.markdown('')
 

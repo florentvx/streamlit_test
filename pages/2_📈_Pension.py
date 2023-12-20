@@ -4,20 +4,36 @@ import datetime as dt
 from pension_simulator import model_statics, simulate_pension_fund, simulate_pension_struct, \
                                 calculate_fix_pension_from_fund, calculate_all_taxes
 
-from tools import set_page_config, NO_NAME_SESSION
+from tools import set_page_config
+from tools.session import *
 
 def push_current_numbers_data():
-    st.session_state['current_numbers'] = {
-        'date': today_date,
-        'current_amount': crt_amount,
-        'current_contrib': crt_contrib,
-    }
+    session_set(
+        'current_numbers', 
+        {
+            'date': today_date,
+            'current_amount': crt_amount,
+            'current_contrib': crt_contrib,
+        }
+    ) 
 
 def push_model_parameters_data():
-    st.session_state['model_parameters'] = {
-        'update_time': dt.datetime.now(),
-        'start_date': start_date,
+    session_set(
+        'model_parameters',
+        {
+            'update_time': dt.datetime.now(),
+            'start_date': start_date,
+        }
+    )
+
+session_init(
+    'current_numbers',
+    {
+        'date': dt.date.today(),
+        'current_amount': 100000.0,
+        'current_contrib': 1000.0,
     }
+)
 
 set_page_config()
 
@@ -27,28 +43,35 @@ left_form, _,right_form = st.columns([0.4, 0.05, 0.55])
 
 with left_form:
     st.subheader("My Current Numbers")
-    my_current_numbers : dict = st.session_state.get('current_numbers', {})
+    my_current_numbers : dict = session_get('current_numbers')
     crt_nb_container = left_form.container(border=True)
     with crt_nb_container:
         today_date = st.date_input(
             "Today date",
-            value=my_current_numbers.get('date', dt.date.today())
+            value=my_current_numbers['date']
         )
         crt_amount=st.number_input(
             "Total Amount", 
-            value=my_current_numbers.get('current_amount', 100000.00)
+            value=my_current_numbers['current_amount']
         )
         crt_contrib=st.number_input(
             "Current Monthly Contribution",
-            value=my_current_numbers.get('current_contrib', 1000.00)
+            value=my_current_numbers['current_contrib']
         )
-        if st.session_state.get('name', NO_NAME_SESSION) != NO_NAME_SESSION:
+        if is_session_loaded():
             zone_button_left, zone_button_right = crt_nb_container.columns([0.5,0.5])
             with zone_button_left:
-                push_button = st.button("Push To Session State", key="current_button", on_click=push_current_numbers_data)
+                push_button = st.button(
+                    "Push To Session State", 
+                    key="current_button",
+                    on_click=push_current_numbers_data,
+                    disabled=my_current_numbers['date'] == today_date \
+                        and my_current_numbers['current_amount'] == crt_amount \
+                        and my_current_numbers['current_contrib'] == crt_contrib
+                )
             with zone_button_right:
                 if push_button:
-                    st.write(f'Current Numbers pushed: {st.session_state["current_numbers"]["date"]}')
+                    st.write(f'Current Numbers pushed: {my_current_numbers["date"]}')
             
 
     

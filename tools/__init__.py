@@ -1,7 +1,7 @@
 import streamlit as st
 from .callback import init_queue
+from .session import *
 
-NO_NAME_SESSION = "<INPUT YOUR SESSION NAME HERE>"
 
 def set_page_config():
     st.set_page_config(
