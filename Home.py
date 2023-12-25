@@ -53,7 +53,7 @@ if uploaded_file is not None:
     full_session_set(yaml.safe_load(uploaded_file))
 
 if is_session_loaded():
-    my_yaml_data_to_download = yaml.dump(st.session_state)
+    my_yaml_data_to_download = yaml.dump(get_session())
     st.download_button(
         label="Download Session", 
         file_name=f'pension_simulator_{"".join(e for e in session_get("name") if e.isalnum())}.yaml',
