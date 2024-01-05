@@ -33,16 +33,7 @@ st.title("💷 Tax Calculations")
 
 left_col_input, _ = st.columns([0.35,0.65])
 with left_col_input:
-    my_amount = st.number_input(
-        "Gross Pay:", 
-        min_value=1000, 
-        max_value=1000000, 
-        value=session_get('input', TAX_SESSION), 
-        step=1000,
-        format='%i',
-        on_change=on_change_my_amount,
-        key='gross_pay_input'
-    )
+    my_amount = st.empty() # placing the placeholder
     zone_button_left, zone_button_mid, zone_button_right = left_col_input.columns([0.25,0.25,0.5])
     with zone_button_left:
         push_button = st.button(
@@ -66,12 +57,26 @@ with left_col_input:
         if restore_button:
             st.write(f'Gross Pay restored: {session_get("gross_pay")}')
 
+# filling the placeholders
+my_amount.number_input(
+    "Gross Pay:", 
+    min_value=1000, 
+    max_value=1000000, 
+    value=session_get('input', TAX_SESSION), 
+    step=1000,
+    format='%i',
+    on_change=on_change_my_amount,
+    key='gross_pay_input'
+)
+
 st.markdown('')
 
+# calculations from above form
+
 left_col, midd_col, right_col = st.columns([0.35,0.35,0.3])
-income_tax = pension.calculate_income_tax(my_amount)
-ni_tax = pension.calculate_national_insurance_tax(my_amount)
-summary_tax = pension.calculate_all_taxes(my_amount)
+income_tax = pension.calculate_income_tax(st.session_state.gross_pay_input)
+ni_tax = pension.calculate_national_insurance_tax(st.session_state.gross_pay_input)
+summary_tax = pension.calculate_all_taxes(st.session_state.gross_pay_input)
 with left_col:
     st.dataframe(income_tax)
 with midd_col:
@@ -82,7 +87,7 @@ pie_array = [
     ["Income Tax", income_tax.loc["Total Income Tax", 'Tax Amount']],
     ["NI Tax", ni_tax.loc["Total NI Tax", 'Tax Amount']],
 ]
-pie_array += [["Net Revenue", my_amount - pie_array[0][1] - pie_array[1][1]]]
+pie_array += [["Net Revenue", st.session_state.gross_pay_input - pie_array[0][1] - pie_array[1][1]]]
 pie_df = pd.DataFrame(pie_array, columns=["Name", "Value"])
 pie_chart = px.pie(pie_df, values="Value", names="Name")
 
