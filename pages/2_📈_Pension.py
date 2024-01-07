@@ -177,14 +177,16 @@ with left_form:
                     "Push", 
                     key="current_push_button",
                     on_click=push_current_numbers_data,
-                    disabled=check_current_numbers_status()
+                    disabled=check_current_numbers_status(),
+                    use_container_width=True,
                 )
             with zone_button_mid:
                 restore_button = st.button(
                     "Restore", 
                     key="current_restore_button",
                     on_click=restore_current_numbers_data,
-                    disabled=check_current_numbers_status()
+                    disabled=check_current_numbers_status(),
+                    use_container_width=True,
                 )
             with zone_button_right:
                 if push_button:
@@ -222,6 +224,7 @@ with right_form:
                     key="model_push_button",
                     on_click=push_model_numbers_data,
                     disabled=check_model_numbers_status(),
+                    use_container_width=True,
                 )
             with zone_button_mid_2:
                 restore_button_2 = st.button(
@@ -229,6 +232,7 @@ with right_form:
                     key="model_restore_button",
                     on_click=restore_model_numbers_data,
                     disabled=check_model_numbers_status(),
+                    use_container_width=True,
                 )
             with zone_button_right_2:
                 if push_button_2:

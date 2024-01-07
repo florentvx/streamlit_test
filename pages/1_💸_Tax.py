@@ -36,28 +36,29 @@ st.title("💷 Tax Calculations")
 left_col_input, _ = st.columns([0.35,0.65])
 with left_col_input:
     my_amount = st.empty() # placing the placeholder
-    zone_button_left, zone_button_mid, zone_button_right = left_col_input.columns([0.25,0.25,0.5])
-    with zone_button_left:
-        push_button = st.button(
-            "Push", 
-            key="push_button", 
-            on_click=push_gross_pay,
-            disabled=session_get('input', TAX_SESSION) == session_get('gross_pay'),
-            use_container_width=True,
-        )
-    with zone_button_mid:
-        restore_button = st.button(
-            "Restore", 
-            key="restore_button", 
-            on_click=restore_gross_pay,
-            disabled=session_get('input', TAX_SESSION) == session_get('gross_pay'),
-            use_container_width=True,
-        )
-    with zone_button_right:
-        if push_button:
-            st.write(f'Gross Pay pushed: {session_get("gross_pay")}')
-        if restore_button:
-            st.write(f'Gross Pay restored: {session_get("gross_pay")}')
+    if is_session_loaded():
+        zone_button_left, zone_button_mid, zone_button_right = left_col_input.columns([0.25,0.25,0.5])
+        with zone_button_left:
+            push_button = st.button(
+                "Push", 
+                key="push_button", 
+                on_click=push_gross_pay,
+                disabled=session_get('input', TAX_SESSION) == session_get('gross_pay'),
+                use_container_width=True,
+            )
+        with zone_button_mid:
+            restore_button = st.button(
+                "Restore", 
+                key="restore_button", 
+                on_click=restore_gross_pay,
+                disabled=session_get('input', TAX_SESSION) == session_get('gross_pay'),
+                use_container_width=True,
+            )
+        with zone_button_right:
+            if push_button:
+                st.write(f'Gross Pay pushed: {session_get("gross_pay")}')
+            if restore_button:
+                st.write(f'Gross Pay restored: {session_get("gross_pay")}')
 
 # filling the placeholders
 my_amount.number_input(
