@@ -17,12 +17,14 @@ if TAX_SESSION not in st.session_state.keys():
 
 
 def on_change_my_amount():
+    st.session_state.gross_pay_input = round(st.session_state.gross_pay_input, 2)
     session_set('input', st.session_state.gross_pay_input, TAX_SESSION)
 
 def push_gross_pay():
     session_set('gross_pay', session_get('input', TAX_SESSION))
 
 def restore_gross_pay():
+    st.session_state.gross_pay_input = session_get('gross_pay')
     session_set('input', session_get('gross_pay'), TAX_SESSION)
 
 

@@ -8,7 +8,7 @@ from tools.inflation import inflation_data
 
 set_page_config()
 
-st.title("🎈 Inflation")
+st.title("🎈 Inflation", help='https://www.ons.gov.uk/economy/inflationandpriceindices/timeseries/l522/mm23')
 
 inflation_dict = {
     row['Date']: row["UK CPIH Index"]

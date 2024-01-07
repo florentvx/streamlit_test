@@ -11,7 +11,7 @@ from tools import set_page_config, init_queue
 from tools.session import *
 
 
-put_in_queue, my_callback_loop = init_queue("HOME")
+#put_in_queue, my_callback_loop = init_queue("HOME")
 
 set_page_config()
 
@@ -23,8 +23,7 @@ st.header("My Pension Calcultor & Simulator")
 if not is_session_loaded():
     st.subheader("To Start a session: \n - either name the session below \n - or drop your session's YAML below.")
 
-@put_in_queue
-async def change_name():
+def change_name():
     session_set('name', st.session_state.new_name)
 
 new_name = st.text_input(
@@ -71,7 +70,11 @@ if is_session_loaded():
 
     st.text(
         '\n'.join([
-            f'{k}: {v}'
+            f'{k}: {v}' if not isinstance(v, dict) else f'{k}: ' + (
+                '\n - ' + '\n - '.join([
+                    f'{vk}: {vv}' for (vk, vv) in v.items()
+                ])
+            )
             for (k,v) in get_session().items()
         ])
     )
@@ -117,17 +120,17 @@ st.markdown(hide_st_style, unsafe_allow_html=True)
 
 
 
-
-try:
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    do_rerun = asyncio.run(my_callback_loop())
-except Exception as e:
-    logging.error(e)
-    do_rerun = False
-finally:
-    print(f"Closing loop - dorerun {do_rerun}")
-    loop.close()
-    if do_rerun:
-        st.rerun()
+# do_rerun=False
+# try:
+#     loop = asyncio.new_event_loop()
+#     asyncio.set_event_loop(loop)
+#     do_rerun = asyncio.run(my_callback_loop())
+# except Exception as e:
+#     logging.error(e)
+#     do_rerun = False
+# finally:
+#     print(f"Closing loop - dorerun {do_rerun}")
+#     loop.close()
+#     if do_rerun:
+#         st.rerun()
 

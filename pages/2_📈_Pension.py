@@ -1,39 +1,160 @@
 import pandas as pd
 import streamlit as st
 import datetime as dt
+import time
+
 from pension_simulator import model_statics, simulate_pension_fund, simulate_pension_struct, \
                                 calculate_fix_pension_from_fund, calculate_all_taxes
 
 from tools import set_page_config
 from tools.session import *
 
-def push_current_numbers_data():
-    session_set(
-        'current_numbers', 
-        {
-            'date': today_date,
-            'current_amount': crt_amount,
-            'current_contrib': crt_contrib,
-        }
-    ) 
+PENSION_SESSION = 'pension_events'
 
-def push_model_parameters_data():
-    session_set(
-        'model_parameters',
-        {
-            'update_time': dt.datetime.now(),
-            'start_date': start_date,
-        }
-    )
+#region Initialization
+
+if st.session_state.get('my_session', None) is None:
+    reset_session()
 
 session_init(
     'current_numbers',
     {
-        'date': dt.date.today(),
+        'today_date': dt.date.today(),
         'current_amount': 100000.0,
         'current_contrib': 1000.0,
     }
 )
+
+session_init(
+    'model_numbers',
+    {
+        'start_date': dt.date(2001,1,1),
+        'inflation_rate': 0.02,
+        'market_rate': 0.03,
+        'number_of_working_years': 40,
+        'number_of_retirement_years': 35,
+        'contrib_increase': 0.05,
+        'contrib_increase_month': ['Jan'],
+    }
+)
+
+if PENSION_SESSION not in st.session_state.keys():
+    st.session_state[PENSION_SESSION] = {
+        **session_get('current_numbers').copy(),
+        **session_get('model_numbers').copy(),
+    }
+
+#endregion
+
+#region Functions: current numbers
+    
+def on_change_today_date():
+    session_set('today_date', st.session_state.today_date, PENSION_SESSION)
+
+def on_change_current_amount():
+    st.session_state.current_amount = round(st.session_state.current_amount, 2)
+    session_set('current_amount', st.session_state.current_amount, PENSION_SESSION)
+
+def on_change_current_contrib():
+    st.session_state.current_contrib = round(st.session_state.current_contrib, 2)
+    session_set('current_contrib', st.session_state.current_contrib, PENSION_SESSION)
+
+def check_current_numbers_status():
+    return session_get('today_date', PENSION_SESSION) == session_get('current_numbers')['today_date'] \
+        and session_get('current_amount', PENSION_SESSION) == session_get('current_numbers')['current_amount'] \
+        and session_get('current_contrib', PENSION_SESSION) == session_get('current_numbers')['current_contrib']
+
+def push_current_numbers_data():
+    session_set(
+        'current_numbers', 
+        {
+            'today_date': session_get('today_date', PENSION_SESSION),
+            'current_amount': session_get('current_amount', PENSION_SESSION),
+            'current_contrib': session_get('current_contrib', PENSION_SESSION),
+        }
+    ) 
+
+def restore_current_numbers_data():
+    my_crt_nb = session_get('current_numbers')
+    st.session_state.today_date = my_crt_nb['today_date']
+    st.session_state.current_amount = my_crt_nb['current_amount']
+    st.session_state.current_contrib = my_crt_nb['current_contrib']
+    session_set('today_date', my_crt_nb['today_date'], PENSION_SESSION)
+    session_set('current_amount', my_crt_nb['current_amount'], PENSION_SESSION)
+    session_set('current_contrib', my_crt_nb['current_contrib'], PENSION_SESSION)
+    
+#endregion
+
+#region Functions: model numbers
+def on_change_start_date():
+    session_set('start_date', st.session_state.start_date, PENSION_SESSION)
+
+def on_change_inflation_rate():
+    st.session_state.inflation_rate = round(st.session_state.inflation_rate, 2)
+    session_set('inflation_rate', st.session_state.inflation_rate / 100.0, PENSION_SESSION)
+
+def on_change_number_of_working_years():
+    st.session_state.number_of_working_years = round(st.session_state.number_of_working_years, 0)
+    session_set('number_of_working_years', st.session_state.number_of_working_years, PENSION_SESSION)
+
+def on_change_contrib_increase():
+    st.session_state.contrib_increase = round(st.session_state.contrib_increase, 2)
+    session_set('contrib_increase', st.session_state.contrib_increase / 100.0, PENSION_SESSION)
+
+def on_change_market_rate():
+    st.session_state.market_rate = round(st.session_state.market_rate, 2)
+    session_set('market_rate', st.session_state.market_rate / 100.0, PENSION_SESSION)
+
+def on_change_number_of_retirement_years():
+    st.session_state.number_of_retirement_years = round(st.session_state.number_of_retirement_years, 0)
+    session_set('number_of_retirement_years', st.session_state.number_of_retirement_years, PENSION_SESSION)
+
+def on_change_contrib_increase_month():
+    session_set('contrib_increase_month', st.session_state.contrib_increase_month, PENSION_SESSION)
+
+def check_model_numbers_status():
+    model_numbers = session_get('model_numbers')
+    return session_get('start_date', PENSION_SESSION) == model_numbers['start_date']\
+        and session_get('inflation_rate', PENSION_SESSION) == model_numbers['inflation_rate']\
+        and session_get('number_of_working_years', PENSION_SESSION) == model_numbers['number_of_working_years']\
+        and session_get('contrib_increase', PENSION_SESSION) == model_numbers['contrib_increase']\
+        and session_get('market_rate', PENSION_SESSION) == model_numbers['market_rate']\
+        and session_get('number_of_retirement_years', PENSION_SESSION) == model_numbers['number_of_retirement_years']\
+        and session_get('contrib_increase_month', PENSION_SESSION) == model_numbers['contrib_increase_month']
+
+def push_model_numbers_data():
+    session_set(
+        'model_numbers',
+        {
+            'update_time': dt.datetime.now(),
+            'start_date': session_get('start_date', PENSION_SESSION),
+            'inflation_rate': session_get('inflation_rate', PENSION_SESSION),
+            'number_of_working_years': session_get('number_of_working_years', PENSION_SESSION),
+            'contrib_increase': session_get('contrib_increase', PENSION_SESSION),
+            'market_rate': session_get('market_rate', PENSION_SESSION),
+            'number_of_retirement_years': session_get('number_of_retirement_years', PENSION_SESSION),
+            'contrib_increase_month': session_get('contrib_increase_month', PENSION_SESSION),
+        }
+    )
+
+def restore_model_numbers_data():
+    model_nb = session_get('model_numbers')
+    st.session_state.start_date = model_nb['start_date']
+    st.session_state.inflation_rate = model_nb['inflation_rate'] * 100.0
+    st.session_state.number_of_working_years = model_nb['number_of_working_years']
+    st.session_state.contrib_increase = model_nb['contrib_increase'] * 100.0
+    st.session_state.market_rate = model_nb['market_rate'] * 100.0
+    st.session_state.number_of_retirement_years = model_nb['number_of_retirement_years']
+    st.session_state.contrib_increase_month = model_nb['contrib_increase_month']
+    session_set('start_date', model_nb['start_date'], PENSION_SESSION)
+    session_set('inflation_rate', model_nb['inflation_rate'], PENSION_SESSION)
+    session_set('number_of_working_years', model_nb['number_of_working_years'], PENSION_SESSION)
+    session_set('contrib_increase', model_nb['contrib_increase'], PENSION_SESSION)
+    session_set('market_rate', model_nb['market_rate'], PENSION_SESSION)
+    session_set('number_of_retirement_years', model_nb['number_of_retirement_years'], PENSION_SESSION)
+    session_set('contrib_increase_month', model_nb['contrib_increase_month'], PENSION_SESSION)
+
+#endregion
 
 set_page_config()
 
@@ -41,100 +162,203 @@ st.title(":blue_book: Pension Calculations")
 
 left_form, _,right_form = st.columns([0.4, 0.05, 0.55])
 
+#region Form: current_numbers
 with left_form:
     st.subheader("My Current Numbers")
-    my_current_numbers : dict = session_get('current_numbers')
     crt_nb_container = left_form.container(border=True)
     with crt_nb_container:
-        today_date = st.date_input(
-            "Today date",
-            value=my_current_numbers['date']
-        )
-        crt_amount=st.number_input(
-            "Total Amount", 
-            value=my_current_numbers['current_amount']
-        )
-        crt_contrib=st.number_input(
-            "Current Monthly Contribution",
-            value=my_current_numbers['current_contrib']
-        )
+        today_date = st.empty()
+        crt_amount = st.empty()
+        crt_contrib = st.empty()
         if is_session_loaded():
-            zone_button_left, zone_button_right = crt_nb_container.columns([0.5,0.5])
+            zone_button_left, zone_button_mid, zone_button_right = crt_nb_container.columns([0.2,0.2,0.6])
             with zone_button_left:
                 push_button = st.button(
-                    "Push To Session State", 
-                    key="current_button",
+                    "Push", 
+                    key="current_push_button",
                     on_click=push_current_numbers_data,
-                    disabled=my_current_numbers['date'] == today_date \
-                        and my_current_numbers['current_amount'] == crt_amount \
-                        and my_current_numbers['current_contrib'] == crt_contrib
+                    disabled=check_current_numbers_status()
+                )
+            with zone_button_mid:
+                restore_button = st.button(
+                    "Restore", 
+                    key="current_restore_button",
+                    on_click=restore_current_numbers_data,
+                    disabled=check_current_numbers_status()
                 )
             with zone_button_right:
                 if push_button:
-                    st.write(f'Current Numbers pushed: {my_current_numbers["date"]}')
-            
+                    st.write(f'Current Numbers pushed: {session_get("current_numbers")["today_date"]}')
+                if restore_button:
+                    st.write(f'Current Numbers restored: {session_get("current_numbers")["today_date"]}')
 
-    
+#endregion
+
+#region Form: model_numbers
 with right_form:
     st.subheader(
         "My Model Parameters",
         help="These parameters should be set from the start to reasonable values and hardly ever retouched in the future"
     )
+    my_model_numbers : dict = session_get('model_numbers')
     rf_container = st.container(border=True)
     with rf_container:
         left_right_form, right_right_form = rf_container.columns([0.5,0.5])
         with left_right_form:
-            start_date=st.date_input("Start Date", value=dt.date(2017,8,1), help="Your carreer start date")
-            fwd_inflation = st.number_input("Inflation Prevision (Yearly %)", value=2.00) / 100.0
-            nb_wk_yrs=st.number_input("Number Of Working Years", value=40)
-            
+            start_date = st.empty()
+            fwd_inflation = st.empty()
+            nb_wk_yrs = st.empty()
         with right_right_form:
-            ctb_inc=st.number_input("my Contribution Increases (Yearly %)", value=5.00) / 100.0
-            fwd_market_rate = st.number_input("ROI Prevision (Yearly %)", value=3.00, help="Return Over Investement") / 100.0
-            nb_ret_yrs=st.number_input("Number Of Retirement Years", value=35)
-        ctb_inc_mth=st.multiselect(
-            'Contribution Increase Month',
-            ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            ['Jan'],
-        )
-        if st.session_state.get('name', NO_NAME_SESSION) != NO_NAME_SESSION:
-            zone_button_left_2, zone_button_right_2 = rf_container.columns([0.5,0.5])
+            contrib_increase = st.empty()
+            fwd_market_rate = st.empty()
+            nb_ret_yrs = st.empty()
+        ctb_inc_mth = st.empty()
+
+        if is_session_loaded():
+            zone_button_left_2, zone_button_mid_2, zone_button_right_2 = rf_container.columns([0.2,0.2,0.6])
             with zone_button_left_2:
-                push_button_2 = st.button("Push To Session State", key="model_button", on_click=push_model_parameters_data)
+                push_button_2 = st.button(
+                    "Push", 
+                    key="model_push_button",
+                    on_click=push_model_numbers_data,
+                    disabled=check_model_numbers_status(),
+                )
+            with zone_button_mid_2:
+                restore_button_2 = st.button(
+                    "Restore", 
+                    key="model_restore_button",
+                    on_click=restore_model_numbers_data,
+                    disabled=check_model_numbers_status(),
+                )
             with zone_button_right_2:
                 if push_button_2:
-                    st.write(f'Model Parameters pushed: {st.session_state["model_parameters"]["update_time"]}')
+                    st.write(f'Model Numbers pushed {my_model_numbers["update_time"]}')
+#endregion
+
+#region Filling Placeholders: current numbers
+today_date.date_input(
+    "Today date",
+    value=session_get('today_date', PENSION_SESSION),
+    on_change=on_change_today_date,
+    key='today_date'
+)
+crt_amount.number_input(
+    "Total Amount", 
+    value=session_get('current_amount', PENSION_SESSION),
+    on_change=on_change_current_amount,
+    key='current_amount'
+)
+crt_contrib.number_input(
+    "Current Monthly Contribution",
+    value=session_get('current_contrib', PENSION_SESSION),
+    on_change=on_change_current_contrib,
+    key='current_contrib'
+)
+#endregion
+
+#region Filling Paceholders: model numbers
+start_date.date_input(
+    "Start Date", 
+    value=session_get('start_date', PENSION_SESSION),
+    on_change=on_change_start_date,
+    key='start_date',
+    help="Your carreer start date",
+)
+fwd_inflation.number_input(
+    "Inflation Prevision (Yearly %)", 
+    value=session_get('inflation_rate', PENSION_SESSION) * 100.0,
+    on_change=on_change_inflation_rate,
+    key='inflation_rate',
+    help='yearly inflation rate used for future dates between today\'s date and start of retirement'
+)
+nb_wk_yrs.number_input(
+    "Number Of Working Years", 
+    value=session_get('number_of_working_years', PENSION_SESSION),
+    on_change=on_change_number_of_working_years,
+    key='number_of_working_years',
+    help='total number of working years from beginning of carreer to its end'
+)
+contrib_increase.number_input(
+    "My Contribution Increases (Yearly %)",
+    value=session_get('contrib_increase', PENSION_SESSION) * 100.0,
+    on_change=on_change_contrib_increase,
+    key='contrib_increase',
+    help='how much do my total contribution to my retirement is going to increase very year in average until my retirement'
+)
+fwd_market_rate.number_input(
+    "ROI Prevision (Yearly %)", 
+    value=session_get('market_rate', PENSION_SESSION) * 100.0,
+    on_change=on_change_market_rate,
+    key='market_rate',
+    help="Return Over Investement",
+)
+nb_ret_yrs.number_input(
+    "Number Of Retirement Years", 
+    value=session_get('number_of_retirement_years', PENSION_SESSION),
+    on_change=on_change_number_of_retirement_years,
+    key='number_of_retirement_years',
+    help='total number of years of retirement (with pension)\nwhat you could set it to 100 years old - retirement age\n if you started working at 25yo, this variable would be 35'
+)
+ctb_inc_mth.multiselect(
+    'Contribution Increase Month',
+    options=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    default=['Jan'],
+    on_change=on_change_contrib_increase_month,
+    key='contrib_increase_month',
+    help='on which month do you increase your pension contribution (maintaining your yearly contribution increase identical)',
+)
+#endregion
 
 st.markdown("---")
 
+
+_,mid,_=st.columns(3)
+with mid:
+    table_head = st.empty()
+    table_result = st.empty()
+
+    with st.spinner("Computing ..."):
+        time.sleep(1.5)
+
+#region Computation
 ms = model_statics(
-    forward_inflation_rate=fwd_inflation,
-    forward_market_rate=fwd_market_rate,
-    working_number_years=nb_wk_yrs,
-    retirement_number_years=nb_ret_yrs,
-    contribution_increase_month_list=ctb_inc_mth,
-    annual_contribution_increase_rate=ctb_inc
+    forward_inflation_rate=st.session_state.inflation_rate / 100.0,
+    forward_market_rate=st.session_state.market_rate / 100.0,
+    working_number_years=st.session_state.number_of_working_years,
+    retirement_number_years=st.session_state.number_of_retirement_years,
+    contribution_increase_month_list=st.session_state.contrib_increase_month,
+    annual_contribution_increase_rate = st.session_state.contrib_increase / 100.0
 )
 res = simulate_pension_fund(
-    start_date=start_date,
-    month_id=(today_date.year - start_date.year)*12 + today_date.month - start_date.month,
-    current_amount=crt_amount,
-    current_contribution=crt_contrib,
+    start_date=st.session_state.start_date,
+    month_id=(st.session_state.today_date.year - st.session_state.start_date.year)*12 \
+        + st.session_state.today_date.month - st.session_state.start_date.month,
+    current_amount=st.session_state.current_amount,
+    current_contribution=st.session_state.current_contrib,
     statics=ms,
 )
 res_final:simulate_pension_struct=res[-1]
 res = pd.DataFrame()
 res["Final Amount"] = [round(res_final.amount,2), round(res_final.real_amount,2)]
-res["Fix Monthly"] = res["Final Amount"].apply(lambda x: round(calculate_fix_pension_from_fund(x, nb_ret_yrs, fwd_market_rate),2))
+res["Fix Monthly"] = res["Final Amount"].apply(
+    lambda x: round(
+        calculate_fix_pension_from_fund(
+            x, 
+            st.session_state.number_of_retirement_years, 
+            st.session_state.market_rate / 100.0
+        ),
+        2
+    )
+)
 res.index = ["Nominal", "Real"]
 tax_rate = round(calculate_all_taxes(res.loc["Real", "Fix Monthly"] * 12).loc["Total", "Tax Rate (%)"], 2)
 res["Fix Monthly Net"] = res["Fix Monthly"].apply(lambda x: round(x * (1-tax_rate/100.0),2))
 
-_,mid,_=st.columns(3)
-with mid:
-    st.subheader("My Results")
-    st.dataframe(res.T, width=500)
-    
+#rendering
+table_head.subheader("My Results")
+table_result.dataframe(res.T, width=500)
+
+#endregion
     
 # hide streamlit style
 hide_st_style = """
