@@ -62,9 +62,14 @@ def on_change_date():
         st.session_state.current_contrib = histo_nb['current_contrib']
         on_change_current_contrib()
     else:
-        max_date = max(list(session_get('historical_numbers').keys()))
-        max_date = max(max_date + dt.timedelta(days=1), dt.date.today())
-        st.session_state.today_date = max_date 
+        max_hist_date = max(list(session_get('historical_numbers').keys()))
+        max_date = max(max_hist_date + dt.timedelta(days=1), dt.date.today())
+        st.session_state.today_date = max_date
+        max_hist_nb = session_get('historical_numbers')[max_hist_date]
+        st.session_state.current_amount = max_hist_nb['current_amount']
+        on_change_current_amount()
+        st.session_state.current_contrib = max_hist_nb['current_contrib']
+        on_change_current_contrib()
         on_change_today_date()
     
     session_set(
@@ -78,9 +83,12 @@ def on_change_date():
 
 def on_change_today_date():
     session_set('today_date', st.session_state.today_date, PENSION_SESSION)
-    print(st.session_state.date_selection)
     if my_dates[st.session_state.date_selection] == NEW_DATE and st.session_state.today_date in session_get('historical_numbers').keys():
-        raise ValueError("today_date problem") # this problem should never happen
+        # can happen with the following sequence:
+        # - selection of NEW_DATE
+        # - chose a date which was already populated
+        st.session_state.date_selection = my_dates.index(st.session_state.today_date)
+        on_change_date()
 
 def on_change_current_amount():
     st.session_state.current_amount = round(st.session_state.current_amount, 2)
