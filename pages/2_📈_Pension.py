@@ -10,6 +10,7 @@ from tools import set_page_config
 from tools.session import *
 
 PENSION_SESSION = 'pension_events'
+NEW_DATE = 'New Date'
 
 #region Initialization
 
@@ -24,6 +25,8 @@ session_init(
         'current_contrib': 1000.0,
     }
 )
+
+session_init('historical_numbers', {})
 
 session_init(
     'model_numbers',
@@ -47,9 +50,37 @@ if PENSION_SESSION not in st.session_state.keys():
 #endregion
 
 #region Functions: current numbers
+
+def on_change_date():
+    my_new_date = my_dates[st.session_state.date_selection]
+    if my_new_date != NEW_DATE:
+        histo_nb = session_get('historical_numbers')[my_new_date]
+        st.session_state.today_date = histo_nb['today_date']
+        on_change_today_date()
+        st.session_state.current_amount = histo_nb['current_amount']
+        on_change_current_amount()
+        st.session_state.current_contrib = histo_nb['current_contrib']
+        on_change_current_contrib()
+    else:
+        max_date = max(list(session_get('historical_numbers').keys()))
+        max_date = max(max_date + dt.timedelta(days=1), dt.date.today())
+        st.session_state.today_date = max_date 
+        on_change_today_date()
     
+    session_set(
+        "current_numbers", 
+        {
+            'today_date': st.session_state.today_date,
+            'current_amount': st.session_state.current_amount,
+            'current_contrib': st.session_state.current_contrib,
+        }
+    )
+
 def on_change_today_date():
     session_set('today_date', st.session_state.today_date, PENSION_SESSION)
+    print(st.session_state.date_selection)
+    if my_dates[st.session_state.date_selection] == NEW_DATE and st.session_state.today_date in session_get('historical_numbers').keys():
+        raise ValueError("today_date problem") # this problem should never happen
 
 def on_change_current_amount():
     st.session_state.current_amount = round(st.session_state.current_amount, 2)
@@ -73,6 +104,10 @@ def push_current_numbers_data():
             'current_contrib': session_get('current_contrib', PENSION_SESSION),
         }
     ) 
+    my_date = session_get('today_date', PENSION_SESSION)
+    hist_nb = session_get('historical_numbers')
+    hist_nb[my_date] = session_get('current_numbers')
+    print(session_get('historical_numbers'))
 
 def restore_current_numbers_data():
     my_crt_nb = session_get('current_numbers')
@@ -160,7 +195,16 @@ set_page_config()
 
 st.title(":blue_book: Pension Calculations")
 
-left_form, _,right_form = st.columns([0.4, 0.05, 0.55])
+current_today = session_get('current_numbers')['today_date']
+my_dates = list(session_get('historical_numbers').keys())
+my_dates.sort(reverse=True)
+my_dates = [NEW_DATE] + my_dates
+if is_session_loaded():
+    left_top, _ = st.columns([0.2, 0.8])
+    with left_top:
+        my_date_selection = st.empty()
+
+left_form, _, right_form = st.columns([0.4, 0.05, 0.55])
 
 #region Form: current_numbers
 with left_form:
@@ -177,7 +221,8 @@ with left_form:
                     "Push", 
                     key="current_push_button",
                     on_click=push_current_numbers_data,
-                    disabled=check_current_numbers_status(),
+                    disabled=check_current_numbers_status()\
+                        and session_get('historical_numbers').get(session_get('today_date', PENSION_SESSION), None) == session_get('current_numbers'),
                     use_container_width=True,
                 )
             with zone_button_mid:
@@ -239,11 +284,23 @@ with right_form:
                     st.write(f'Model Numbers pushed {my_model_numbers["update_time"]}')
 #endregion
 
+if is_session_loaded():
+    my_date_selection.selectbox(
+        "Past Entries: ",
+        key="date_selection",
+        options= list(range(len(my_dates))),
+        index=my_dates.index(current_today) if (current_today in my_dates) else 0,
+        disabled=len(my_dates)==1,
+        on_change=on_change_date,
+        format_func=lambda x: my_dates[x]
+    )
+
 #region Filling Placeholders: current numbers
 today_date.date_input(
     "Today date",
     value=session_get('today_date', PENSION_SESSION),
     on_change=on_change_today_date,
+    disabled=session_get('today_date', PENSION_SESSION) in session_get('historical_numbers').keys(),
     key='today_date'
 )
 crt_amount.number_input(
