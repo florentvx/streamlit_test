@@ -371,7 +371,7 @@ nb_ret_yrs.number_input(
 ctb_inc_mth.multiselect(
     'Contribution Increase Month',
     options=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    default=['Jan'],
+    default=session_get('contrib_increase_month', PENSION_SESSION),
     on_change=on_change_contrib_increase_month,
     key='contrib_increase_month',
     help='on which month do you increase your pension contribution (maintaining your yearly contribution increase identical)',
