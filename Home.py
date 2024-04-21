@@ -18,7 +18,7 @@ set_page_config()
 if st.session_state.get('my_session', None) is None:
     reset_session()
 
-st.header("My Pension Calcultor & Simulator")
+st.header("My Pension Calculator & Simulator")
 
 if not is_session_loaded():
     st.subheader("To Start a session: \n - either name the session below \n - or drop your session's YAML below.")
