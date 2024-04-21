@@ -33,13 +33,13 @@ new_name = st.text_input(
     key='new_name',
 )
 
-st.sidebar.header("sidebar")
-option_ms = [f"{i}" for i in range(1,6)]
-my_var = st.sidebar.multiselect(
-    "select var",
-    options=option_ms,
-    default=[option_ms[0], option_ms[-1]]
-)
+# st.sidebar.header("sidebar")
+# option_ms = [f"{i}" for i in range(1,6)]
+# my_var = st.sidebar.multiselect(
+#     "select var",
+#     options=option_ms,
+#     default=[option_ms[0], option_ms[-1]]
+# )
 
 uploaded_file = None
 uploader_shown = False
@@ -81,32 +81,32 @@ if is_session_loaded():
 
     st.markdown('-----')
 
-st.title(':pencil2:  Numbers')
-#st.markdown("##")
-st.text(sum(map(float,my_var)))
+# st.title(':pencil2:  Numbers')
+# #st.markdown("##")
+# st.text(sum(map(float,my_var)))
 
-left_col, midd_col, right_col = st.columns([0.25,0.5,0.25])
-with left_col:
-    st.text("My Stars")
-with midd_col:
-    st.markdown(":star:" * 6)
-with right_col:
-    st.text("it was great right?")
+# left_col, midd_col, right_col = st.columns([0.25,0.5,0.25])
+# with left_col:
+#     st.text("My Stars")
+# with midd_col:
+#     st.markdown(":star:" * 6)
+# with right_col:
+#     st.text("it was great right?")
 
-st.markdown("---")
+# st.markdown("---")
 
-df = pd.DataFrame()
-df['x'] = [i/100. for i in range(1000)]
-df['y'] = df['x'].apply(lambda x: math.sin(x))
-my_line_chart = px.line(
-    df, 
-    x="x", 
-    y="y",
-    title="<b>My Special Line Chart</b>",
-    template="plotly",
-)
+# df = pd.DataFrame()
+# df['x'] = [i/100. for i in range(1000)]
+# df['y'] = df['x'].apply(lambda x: math.sin(x))
+# my_line_chart = px.line(
+#     df, 
+#     x="x", 
+#     y="y",
+#     title="<b>My Special Line Chart</b>",
+#     template="plotly",
+# )
 
-midd_col.plotly_chart(my_line_chart, use_container_width=True)
+# midd_col.plotly_chart(my_line_chart, use_container_width=True)
 
 # hide streamlit style
 hide_st_style = """
