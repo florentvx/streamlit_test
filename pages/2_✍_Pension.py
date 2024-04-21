@@ -6,7 +6,7 @@ import time
 from pension_simulator import model_statics, simulate_pension_fund, simulate_pension_struct, \
                                 calculate_fix_pension_from_fund, calculate_all_taxes
 
-from tools import set_page_config
+from tools import set_page_config, get_month_id, get_next_contribution_month
 from tools.session import *
 
 PENSION_SESSION = 'pension_events'
@@ -398,10 +398,11 @@ ms = model_statics(
     contribution_increase_month_list=st.session_state.contrib_increase_month,
     annual_contribution_increase_rate = st.session_state.contrib_increase / 100.0
 )
+
+month_id = get_month_id(st.session_state.start_date, st.session_state.today_date)
 res = simulate_pension_fund(
     start_date=st.session_state.start_date,
-    month_id=(st.session_state.today_date.year - st.session_state.start_date.year)*12 \
-        + st.session_state.today_date.month - st.session_state.start_date.month,
+    month_id=month_id,
     current_amount=st.session_state.current_amount,
     current_contribution=st.session_state.current_contrib,
     statics=ms,
@@ -429,6 +430,8 @@ table_result.dataframe(res.T, width=500)
 
 #endregion
     
+st.text(f"The next contribution month is: {get_next_contribution_month(st.session_state.start_date, month_id)}")
+
 # hide streamlit style
 hide_st_style = """
 <style>

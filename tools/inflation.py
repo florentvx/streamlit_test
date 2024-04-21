@@ -18,3 +18,8 @@ inflation_data = inflation_data.drop('year_month_date', axis = 1)
 inflation_data['UK CPIH Index'] = inflation_data['uk_cpih']
 inflation_data = inflation_data.drop("uk_cpih", axis=1)
 inflation_data['Inflation Rate (%)'] = round((inflation_data['UK CPIH Index'] / inflation_data['UK CPIH Index'].shift(12) - 1) * 100, 2)
+
+inflation_dict = {
+    row['Date']: row["UK CPIH Index"]
+    for _, row in inflation_data.iterrows()
+}

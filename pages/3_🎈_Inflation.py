@@ -4,16 +4,11 @@ import plotly.express as px
 from pension_simulator import convert_price_with_inflation
 
 from tools import *
-from tools.inflation import inflation_data
+from tools.inflation import inflation_data, inflation_dict
 
 set_page_config()
 
 st.title("🎈 Inflation", help='https://www.ons.gov.uk/economy/inflationandpriceindices/timeseries/l522/mm23')
-
-inflation_dict = {
-    row['Date']: row["UK CPIH Index"]
-    for _, row in inflation_data.iterrows()
-}
 
 cols_converter = st.columns([0.2]*5)
 with cols_converter[0]:
