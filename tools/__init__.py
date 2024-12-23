@@ -6,7 +6,7 @@ from .session import *
 
 def set_page_config():
     st.set_page_config(
-        page_title='My Data',
+        page_title='Pension Calculator',
         page_icon=":green_book:",
         layout="wide",
     )
