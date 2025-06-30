@@ -9,7 +9,7 @@ from pension_simulator import model_statics, simulate_pension_fund, calculate_fi
     calculate_all_taxes, convert_price_with_inflation
 
 from tools import set_page_config
-from tools.session import *
+from tools.session import reset_session, is_session_loaded, session_get
 from tools.inflation import inflation_dict
 
 

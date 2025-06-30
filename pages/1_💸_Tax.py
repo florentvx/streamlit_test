@@ -1,12 +1,11 @@
 import pandas as pd
 import streamlit as st
-from streamlit.components.v1 import html
 import pension_simulator as pension
 import plotly.express as px
 from PIL import Image
 
 from tools import set_page_config
-from tools.session import *
+from tools.session import session_init, session_get, session_set, is_session_loaded
 
 TAX_SESSION = "tax_events"
 
@@ -100,7 +99,7 @@ with mid2:
     st.plotly_chart(pie_chart)
 
     image = Image.open('images/tax.jpg')
-    st.image(image, caption="my picture", use_column_width=True)
+    st.image(image, caption="my picture", use_container_width=True)
 
 
 

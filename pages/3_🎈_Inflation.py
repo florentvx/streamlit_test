@@ -1,5 +1,6 @@
 import datetime as dt
 import plotly.express as px
+import streamlit as st
 
 from pension_simulator import convert_price_with_inflation
 

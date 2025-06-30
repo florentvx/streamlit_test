@@ -7,7 +7,7 @@ from pension_simulator import model_statics, simulate_pension_fund, simulate_pen
                                 calculate_fix_pension_from_fund, calculate_all_taxes
 
 from tools import set_page_config, get_month_id, get_next_contribution_month
-from tools.session import *
+from tools.session import reset_session, session_init, session_get, session_set, is_session_loaded
 
 PENSION_SESSION = 'pension_events'
 NEW_DATE = 'New Date'
