@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import datetime as dt
 import time
+import logging
 
 from pension_simulator import model_statics, simulate_pension_fund, simulate_pension_struct, \
                                 calculate_fix_pension_from_fund, calculate_all_taxes
@@ -293,15 +294,27 @@ with right_form:
 #endregion
 
 if is_session_loaded():
-    my_date_selection.selectbox(
-        "Past Entries: ",
-        key="date_selection",
-        options= list(range(len(my_dates))),
-        index=my_dates.index(current_today) if (current_today in my_dates) else 0,
-        disabled=len(my_dates)==1,
-        on_change=on_change_date,
-        format_func=lambda x: my_dates[x]
-    )
+    try:
+        my_date_selection.selectbox(
+            "Past Entries: ",
+            key="date_selection",
+            options= list(range(len(my_dates))),
+            index=my_dates.index(current_today) if (current_today in my_dates) else 0,
+            disabled=len(my_dates)==1,
+            on_change=on_change_date,
+            format_func=lambda x: my_dates[x]
+        )
+    except ValueError as e:
+        logging.info(f"Error in date selection: {e}")
+        my_date_selection.selectbox(
+            "Past Entries: ",
+            key="date_selection",
+            options= list(range(len(my_dates))),
+            index=0,
+            disabled=False,
+            #on_change=on_change_date,
+            #format_func=lambda x: my_dates[x]
+        )
 
 #region Filling Placeholders: current numbers
 today_date.date_input(
