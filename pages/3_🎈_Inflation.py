@@ -4,7 +4,7 @@ import streamlit as st
 
 from pension_simulator import convert_price_with_inflation
 
-from tools import *
+from tools import set_page_config
 from tools.inflation import inflation_data, inflation_dict
 
 set_page_config()
